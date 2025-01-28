@@ -74,4 +74,17 @@ def text_to_textnodes(text):
 
 	return output
 
+def markdown_to_blocks(text):
+	blocks = [[]]
+	for line in text.strip().splitlines():
+	    line = line.strip()
+	    if len(line)==0:
+	        if len(blocks[-1])>0:
+	            blocks[-1] = "\n".join(blocks[-1])
+	            blocks.append([])
+	        continue
+	    blocks[-1].append(line)
+
+	blocks[-1] = "\n".join(blocks[-1])
+	return blocks
 
