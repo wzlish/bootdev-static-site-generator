@@ -1,4 +1,5 @@
 from textnode import TextNode, TextType
+from extract_markdown import extract_markdown_images, extract_markdown_links
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
 	output = []
@@ -21,3 +22,32 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 			new_nodes.append(TextNode(blocks[i], text_type))
 		output.extend(new_nodes)
 	return output
+
+
+def _split_imagelink_helper(old_nodes, target_node):
+	output = []
+
+	for old_node in old_nodes:
+		
+		if old_node.text_type != TextType.TEXT:
+			output.append(old_node)
+			continue
+		
+		new_nodes = []
+		pos = 0
+		extracted = extract_markdown_images(old_node.text) if target_node == TextType.IMAGE else extract_markdown_links(old_node.text)
+		for elem in extracted:
+			start, end = elem[2:]
+			if start>pos and len(old_node.text[pos:start])>0:
+				new_nodes.append(TextNode(old_node.text[pos:start],TextType.TEXT))
+			new_nodes.append(TextNode(elem[0], target_node, elem[1]))
+			pos = end
+		
+		if pos<len(old_node.text) and len(old_node.text[pos:])>0:
+			new_nodes.append(TextNode(old_node.text[pos:],TextType.TEXT))
+		output.extend(new_nodes)
+
+	return output
+
+split_nodes_image = lambda n: _split_imagelink_helper(n, TextType.IMAGE)
+split_nodes_link = lambda n: _split_imagelink_helper(n, TextType.LINK)
