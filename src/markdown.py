@@ -1,5 +1,13 @@
+import re
 from textnode import TextNode, TextType
-from extract_markdown import extract_markdown_images, extract_markdown_links
+
+def extract_markdown_images(text):
+	pattern = re.compile("!\\[(.*?)\\]\\((.*?)\\)")
+	return [m.groups() + m.span() for m in re.finditer(pattern, text)]
+
+def extract_markdown_links(text):
+	pattern = re.compile("(?<!\\!)\\[(.*?)\\]\\((.*?)\\)")
+	return [m.groups() + m.span() for m in re.finditer(pattern, text)]
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
 	output = []
@@ -51,3 +59,19 @@ def _split_imagelink_helper(old_nodes, target_node):
 
 split_nodes_image = lambda n: _split_imagelink_helper(n, TextType.IMAGE)
 split_nodes_link = lambda n: _split_imagelink_helper(n, TextType.LINK)
+
+def text_to_textnodes(text):
+
+	delims = [	("**", TextType.BOLD),
+				("*", TextType.ITALIC),
+				("`", TextType.CODE)]
+
+	output = [TextNode(text, TextType.TEXT)]
+	for delim in delims:
+		output = split_nodes_delimiter(output, delim[0], delim[1])
+	output = split_nodes_image(output)
+	output = split_nodes_link(output)
+
+	return output
+
+
