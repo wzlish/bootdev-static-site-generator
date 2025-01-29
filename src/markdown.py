@@ -112,8 +112,10 @@ def block_to_block_type(block):
 
 	return next(iter(linetype)) if len(linetype)==1 else "paragraph"
 
-def markdown_to_html_node(markdown):
+def get_leaf_nodes(text):
+	return [text_node_to_html_node(n) for n in text_to_textnodes(text)]
 
+def markdown_to_html_node(markdown):
 	blocks = markdown_to_blocks(markdown)
 	blocks_html = []
 	for block in blocks:
@@ -122,30 +124,25 @@ def markdown_to_html_node(markdown):
 			case "heading":
 				h_size = len(block[:block.index(" ")])
 				text = block[block.index(" ")+1:]
-				children = [text_node_to_html_node(n) for n in text_to_textnodes(text)]
-				blocks_html.append(ParentNode(f"h{h_size}",children))
+				blocks_html.append(ParentNode(f"h{h_size}",get_leaf_nodes(text)))
 
 			case "code":
 				text = block[3:-3]
-				grandchildren = [text_node_to_html_node(n) for n in text_to_textnodes(text)]
-				children = [ParentNode(f"code",grandchildren)]
+				children = [ParentNode(f"code",get_leaf_nodes(text))]
 				blocks_html.append(ParentNode(f"pre",children))
 
 			case "quote":
 				text = "\n".join(line[1:] for line in block.split("\n"))
-				children = [text_node_to_html_node(n) for n in text_to_textnodes(text)]
-				blocks_html.append(ParentNode("blockquote",children))
+				blocks_html.append(ParentNode("blockquote",get_leaf_nodes(text)))
 
 			case "unordered_list" | "ordered_list":
 				children = []
 				for line in block.split("\n"):
-					grandchildren = [text_node_to_html_node(n) for n in text_to_textnodes(line[line.index(" ")+1:])]
-					children.append(ParentNode(f"li",grandchildren))
+					children.append(ParentNode(f"li",get_leaf_nodes(line[line.index(" ")+1:])))
 				list_type = "ul" if block_type == "unordered_list" else "ol"
 				blocks_html.append(ParentNode(list_type,children))
 
 			case "paragraph":
-				children = [text_node_to_html_node(n) for n in text_to_textnodes(block)]
-				blocks_html.append(ParentNode("p",children))
+				blocks_html.append(ParentNode("p",get_leaf_nodes(block)))
 
 	return ParentNode("div",blocks_html)
