@@ -133,7 +133,7 @@ def markdown_to_html_node(markdown):
 
 			case "quote":
 				text = "\n".join(line[1:] for line in block.split("\n"))
-				blocks_html.append(ParentNode("blockquote",get_leaf_nodes(text)))
+				blocks_html.append(ParentNode("blockquote",get_leaf_nodes(text.strip())))
 
 			case "unordered_list" | "ordered_list":
 				children = []
@@ -146,3 +146,10 @@ def markdown_to_html_node(markdown):
 				blocks_html.append(ParentNode("p",get_leaf_nodes(block)))
 
 	return ParentNode("div",blocks_html)
+
+def extract_title(markdown):
+	
+	for block in markdown.split("\n"):
+		if block[:2] == "# ":
+			return block[2:].strip()
+	raise Exception("No valid h1 title")
