@@ -10,6 +10,7 @@ from markdown import (
 	text_to_textnodes,
 	markdown_to_blocks,
 	block_to_block_type,
+	markdown_to_html_node,
  )
 
 class TestMarkdown(unittest.TestCase):
@@ -223,6 +224,36 @@ class TestMarkdown(unittest.TestCase):
 		self.assertEqual("paragraph", block_to_block_type("> a quote \n1. a list item"))
 		self.assertEqual("paragraph", block_to_block_type("1. a num \n>amalformedquote"))
 		self.assertEqual("paragraph", block_to_block_type("- unordered list \n```code```"))
+
+	def test_markdown_to_html_node(self):
+
+		markdown = """ hi """
+		expected_output = """<div><p>hi</p></div>"""
+		self.assertEqual(markdown_to_html_node(markdown).to_html(),expected_output)
+
+		markdown = """### hello
+
+		hi howdy """
+		expected_output = """<div><h3>hello</h3><p>hi howdy</p></div>"""
+		self.assertEqual(markdown_to_html_node(markdown).to_html(),expected_output)
+
+		markdown = """####### seven heading fail """
+		expected_output = """<div><p>####### seven heading fail</p></div>"""
+		self.assertEqual(markdown_to_html_node(markdown).to_html(),expected_output)
+
+		markdown = """> A quote is here
+
+		- list item 1
+		- list item 2
+		- list item **bold** """
+		expected_output = """<div><blockquote> A quote is here</blockquote><ul><li>list item 1</li><li>list item 2</li><li>list item <b>bold</b></li></ul></div>"""
+		self.assertEqual(markdown_to_html_node(markdown).to_html(),expected_output)
+
+		markdown = """1. Numbered
+		2. List with a [link](https://google.com)
+		3. And *some italics*"""
+		expected_output = '''<div><ol><li>Numbered</li><li>List with a <a href="https://google.com">link</a></li><li>And <i>some italics</i></li></ol></div>'''
+		self.assertEqual(markdown_to_html_node(markdown).to_html(),expected_output)
 
 if __name__ == "__main__":
 	unittest.main()

@@ -1,5 +1,6 @@
 import re
-from textnode import TextNode, TextType
+from textnode import TextNode, TextType, text_node_to_html_node
+from htmlnode import LeafNode, ParentNode
 
 def extract_markdown_images(text):
 	pattern = re.compile("!\\[(.*?)\\]\\((.*?)\\)")
@@ -34,7 +35,6 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 
 def _split_imagelink_helper(old_nodes, target_node):
 	output = []
-
 	for old_node in old_nodes:
 		
 		if old_node.text_type != TextType.TEXT:
@@ -77,37 +77,75 @@ def text_to_textnodes(text):
 def markdown_to_blocks(text):
 	blocks = [[]]
 	for line in text.strip().splitlines():
-	    line = line.strip()
-	    if len(line)==0:
-	        if len(blocks[-1])>0:
-	            blocks[-1] = "\n".join(blocks[-1])
-	            blocks.append([])
-	        continue
-	    blocks[-1].append(line)
+		line = line.strip()
+		if len(line)==0:
+			if len(blocks[-1])>0:
+				blocks[-1] = "\n".join(blocks[-1])
+				blocks.append([])
+			continue
+		blocks[-1].append(line)
 
 	blocks[-1] = "\n".join(blocks[-1])
 	return blocks
 
 def block_to_block_type(block):
-    if block[:7].replace("#","",6)[0]==" ":
-        return "heading"
+	if block[:7].replace("#","",6)[0]==" ":
+		return "heading"
 
-    if len(block)>5 and block[:3] == block[-3:] == "```":
-        return "code"
+	if len(block)>5 and block[:3] == block[-3:] == "```":
+		return "code"
 
-    linetype = set()
-    for k,v in enumerate(block.split("\n"), 1):
-        if len(linetype)>1:
-            return "paragraph"
-        if v[:1] == ">": 
-            linetype.add("quote")
-            continue
-        if v[:2] == "* " or v[:2] == "- ":
-            linetype.add("unordered_list")
-            continue
-        if v.startswith(f"{k}. "):
-            linetype.add("ordered_list")
-            continue
-        return "paragraph"
+	linetype = set()
+	for k,v in enumerate(block.split("\n"), 1):
+		if len(linetype)>1:
+			return "paragraph"
+		if v[:1] == ">": 
+			linetype.add("quote")
+			continue
+		if v[:2] == "* " or v[:2] == "- ":
+			linetype.add("unordered_list")
+			continue
+		if v.startswith(f"{k}. "):
+			linetype.add("ordered_list")
+			continue
+		return "paragraph"
 
-    return next(iter(linetype)) if len(linetype)==1 else "paragraph"
+	return next(iter(linetype)) if len(linetype)==1 else "paragraph"
+
+def markdown_to_html_node(markdown):
+
+	blocks = markdown_to_blocks(markdown)
+	blocks_html = []
+	for block in blocks:
+		block_type = block_to_block_type(block)
+		match block_type:
+			case "heading":
+				h_size = len(block[:block.index(" ")])
+				text = block[block.index(" ")+1:]
+				children = [text_node_to_html_node(n) for n in text_to_textnodes(text)]
+				blocks_html.append(ParentNode(f"h{h_size}",children))
+
+			case "code":
+				text = block[3:-3]
+				grandchildren = [text_node_to_html_node(n) for n in text_to_textnodes(text)]
+				children = [ParentNode(f"code",grandchildren)]
+				blocks_html.append(ParentNode(f"pre",children))
+
+			case "quote":
+				text = "\n".join(line[1:] for line in block.split("\n"))
+				children = [text_node_to_html_node(n) for n in text_to_textnodes(text)]
+				blocks_html.append(ParentNode("blockquote",children))
+
+			case "unordered_list" | "ordered_list":
+				children = []
+				for line in block.split("\n"):
+					grandchildren = [text_node_to_html_node(n) for n in text_to_textnodes(line[line.index(" ")+1:])]
+					children.append(ParentNode(f"li",grandchildren))
+				list_type = "ul" if block_type == "unordered_list" else "ol"
+				blocks_html.append(ParentNode(list_type,children))
+
+			case "paragraph":
+				children = [text_node_to_html_node(n) for n in text_to_textnodes(block)]
+				blocks_html.append(ParentNode("p",children))
+
+	return ParentNode("div",blocks_html)
