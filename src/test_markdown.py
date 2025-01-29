@@ -9,6 +9,7 @@ from markdown import (
 	split_nodes_link,
 	text_to_textnodes,
 	markdown_to_blocks,
+	block_to_block_type,
  )
 
 class TestMarkdown(unittest.TestCase):
@@ -181,6 +182,47 @@ class TestMarkdown(unittest.TestCase):
 			 					],
 			 					markdown_to_blocks(text),
 			 				)
+	def test_block_to_block_type_header(self):
+ 
+		self.assertEqual("heading", block_to_block_type("# a"))
+		self.assertEqual("heading", block_to_block_type("###### a"))
+		self.assertNotEqual("heading", block_to_block_type("#a"))
+		self.assertNotEqual("heading", block_to_block_type("####### a"))
+
+	def test_block_to_block_type_code(self):
+ 
+		self.assertEqual("code", block_to_block_type("``` some text ```"))
+		self.assertEqual("code", block_to_block_type("``` other text\n with another line ```"))
+		self.assertNotEqual("code", block_to_block_type("``` malformed closing tag ``"))
+		self.assertNotEqual("code", block_to_block_type("missing opening tag```"))
+
+	def test_block_to_block_type_quote(self):
+
+		self.assertEqual("quote", block_to_block_type("> a quote \n> another line"))
+
+	def test_block_to_block_type_unordered_list(self):
+
+		self.assertEqual("unordered_list", block_to_block_type("* just one line"))
+		self.assertEqual("unordered_list", block_to_block_type("* line one \n* line two"))
+		self.assertEqual("unordered_list", block_to_block_type("- line one \n- line two"))
+
+	def test_block_to_block_type_ordered_list(self):
+
+		self.assertEqual("ordered_list", block_to_block_type("1. a line \n2. another line"))
+		self.assertEqual("ordered_list", block_to_block_type("1. a line \n2. another line\n3. a third line"))
+		self.assertNotEqual("ordered_list", block_to_block_type("1. first \n3. a wrong line"))
+		self.assertNotEqual("ordered_list", block_to_block_type("1.nospace \n2. another line"))
+
+	def test_block_to_block_type_paragraph(self):
+
+		self.assertEqual("paragraph", block_to_block_type("This is normal text"))
+		self.assertEqual("paragraph", block_to_block_type("This is normal ```text but with random code tags```"))
+
+	def test_block_to_block_type_mixedlines(self):
+
+		self.assertEqual("paragraph", block_to_block_type("> a quote \n1. a list item"))
+		self.assertEqual("paragraph", block_to_block_type("1. a num \n>amalformedquote"))
+		self.assertEqual("paragraph", block_to_block_type("- unordered list \n```code```"))
 
 if __name__ == "__main__":
 	unittest.main()

@@ -88,3 +88,26 @@ def markdown_to_blocks(text):
 	blocks[-1] = "\n".join(blocks[-1])
 	return blocks
 
+def block_to_block_type(block):
+    if block[:7].replace("#","",6)[0]==" ":
+        return "heading"
+
+    if len(block)>5 and block[:3] == block[-3:] == "```":
+        return "code"
+
+    linetype = set()
+    for k,v in enumerate(block.split("\n"), 1):
+        if len(linetype)>1:
+            return "paragraph"
+        if v[:1] == ">": 
+            linetype.add("quote")
+            continue
+        if v[:2] == "* " or v[:2] == "- ":
+            linetype.add("unordered_list")
+            continue
+        if v.startswith(f"{k}. "):
+            linetype.add("ordered_list")
+            continue
+        return "paragraph"
+
+    return next(iter(linetype)) if len(linetype)==1 else "paragraph"
