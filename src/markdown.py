@@ -13,11 +13,11 @@ def extract_markdown_links(text):
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
 	output = []
 	for old_node in old_nodes:
-		
+
 		if old_node.text_type != TextType.TEXT:
 			output.append(old_node)
 			continue
-		
+
 		new_nodes = []
 		blocks = old_node.text.split(delimiter)
 		if not len(blocks) % 2:
@@ -36,11 +36,11 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 def _split_imagelink_helper(old_nodes, target_node):
 	output = []
 	for old_node in old_nodes:
-		
+
 		if old_node.text_type != TextType.TEXT:
 			output.append(old_node)
 			continue
-		
+
 		new_nodes = []
 		pos = 0
 		extracted = extract_markdown_images(old_node.text) if target_node == TextType.IMAGE else extract_markdown_links(old_node.text)
@@ -50,7 +50,7 @@ def _split_imagelink_helper(old_nodes, target_node):
 				new_nodes.append(TextNode(old_node.text[pos:start],TextType.TEXT))
 			new_nodes.append(TextNode(elem[0], target_node, elem[1]))
 			pos = end
-		
+
 		if pos<len(old_node.text) and len(old_node.text[pos:])>0:
 			new_nodes.append(TextNode(old_node.text[pos:],TextType.TEXT))
 		output.extend(new_nodes)
@@ -99,7 +99,7 @@ def block_to_block_type(block):
 	for k,v in enumerate(block.split("\n"), 1):
 		if len(linetype)>1:
 			return "paragraph"
-		if v[:1] == ">": 
+		if v[:1] == ">":
 			linetype.add("quote")
 			continue
 		if v[:2] == "* " or v[:2] == "- ":
@@ -148,7 +148,7 @@ def markdown_to_html_node(markdown):
 	return ParentNode("div",blocks_html)
 
 def extract_title(markdown):
-	
+
 	for block in markdown.split("\n"):
 		if block[:2] == "# ":
 			return block[2:].strip()
