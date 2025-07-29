@@ -184,14 +184,14 @@ class TestMarkdown(unittest.TestCase):
 			 					markdown_to_blocks(text),
 			 				)
 	def test_block_to_block_type_header(self):
- 
+
 		self.assertEqual("heading", block_to_block_type("# a"))
 		self.assertEqual("heading", block_to_block_type("###### a"))
 		self.assertNotEqual("heading", block_to_block_type("#a"))
 		self.assertNotEqual("heading", block_to_block_type("####### a"))
 
 	def test_block_to_block_type_code(self):
- 
+
 		self.assertEqual("code", block_to_block_type("``` some text ```"))
 		self.assertEqual("code", block_to_block_type("``` other text\n with another line ```"))
 		self.assertNotEqual("code", block_to_block_type("``` malformed closing tag ``"))
@@ -219,6 +219,7 @@ class TestMarkdown(unittest.TestCase):
 		self.assertEqual("paragraph", block_to_block_type("This is normal text"))
 		self.assertEqual("paragraph", block_to_block_type("This is normal ```text but with random code tags```"))
 
+
 	def test_block_to_block_type_mixedlines(self):
 
 		self.assertEqual("paragraph", block_to_block_type("> a quote \n1. a list item"))
@@ -241,18 +242,22 @@ class TestMarkdown(unittest.TestCase):
 		expected_output = """<div><p>####### seven heading fail</p></div>"""
 		self.assertEqual(markdown_to_html_node(markdown).to_html(),expected_output)
 
-		markdown = """> A quote is here
+		markdown = """>A quote is here
 
 		- list item 1
 		- list item 2
 		- list item **bold** """
-		expected_output = """<div><blockquote> A quote is here</blockquote><ul><li>list item 1</li><li>list item 2</li><li>list item <b>bold</b></li></ul></div>"""
+		expected_output = """<div><blockquote>A quote is here</blockquote><ul><li>list item 1</li><li>list item 2</li><li>list item <b>bold</b></li></ul></div>"""
 		self.assertEqual(markdown_to_html_node(markdown).to_html(),expected_output)
 
 		markdown = """1. Numbered
 		2. List with a [link](https://google.com)
 		3. And *some italics*"""
 		expected_output = '''<div><ol><li>Numbered</li><li>List with a <a href="https://google.com">link</a></li><li>And <i>some italics</i></li></ol></div>'''
+		self.assertEqual(markdown_to_html_node(markdown).to_html(),expected_output)
+
+		markdown = """ Italic _testy test_ test?"""
+		expected_output = """<div><p>Italic <i>testy test</i> test?</p></div>"""
 		self.assertEqual(markdown_to_html_node(markdown).to_html(),expected_output)
 
 if __name__ == "__main__":

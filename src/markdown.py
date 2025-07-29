@@ -63,7 +63,8 @@ split_nodes_link = lambda n: _split_imagelink_helper(n, TextType.LINK)
 def text_to_textnodes(text):
 
 	delims = [	("**", TextType.BOLD),
-				("*", TextType.ITALIC),
+	            ("*", TextType.ITALIC),
+				("_", TextType.ITALIC),
 				("`", TextType.CODE)]
 
 	output = [TextNode(text, TextType.TEXT)]
