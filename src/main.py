@@ -1,9 +1,12 @@
 #!/usr/bin/python3
-from textnode import TextNode
 from generate import copy_dir, generate_pages_recursive
+from sys import argv
+
 
 def main():
-	copy_dir("static/", "public/")
-	generate_pages_recursive("content/","public/", "template.html")
+
+    basepath = argv[1] if (len(argv)>1 and argv[1]) else "/"
+    copy_dir("static/", "docs/")
+    generate_pages_recursive(basepath, "content/","docs/", "template.html")
 
 main()

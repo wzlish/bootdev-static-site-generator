@@ -20,10 +20,10 @@ def copy_dir(source, target, clear=True):
 			shutil.rmtree(target)
 		except Exception as error:
 			sys.exit(f"Unable to rmtree {target}: {error}")
-	
+
 	if not os.path.exists(target):
 		os.mkdir(target)
-	
+
 	scan = os.scandir(source)
 	for entry in scan:
 		if entry.is_file():
@@ -36,7 +36,7 @@ def copy_dir(source, target, clear=True):
 			continue
 	scan.close()
 
-def generate_page(template_path, markdown_path, destination):
+def generate_page(basepath, template_path, markdown_path, destination):
 
 	destination = Path(destination)
 
@@ -49,6 +49,8 @@ def generate_page(template_path, markdown_path, destination):
 		markdown = file.read()
 
 	content_html = markdown_to_html_node(markdown).to_html()
+	content_html = content_html.replace('href="/', f'href="/{basepath}')
+	content_html = content_html.replace('src="/', f'src="/{basepath}')
 	template = template.replace("{{ Title }}", extract_title(markdown), 1)
 	template = template.replace("{{ Content }}", content_html, 1)
 
@@ -56,7 +58,7 @@ def generate_page(template_path, markdown_path, destination):
 	with open(destination, "w") as file:
 		file.write(template)
 
-def generate_pages_recursive(dir_path_content, destination, template_path):
+def generate_pages_recursive(basepath, dir_path_content, destination, template_path):
 
 	template_path = os.path.abspath(template_path)
 	scan = os.scandir(dir_path_content)
@@ -66,13 +68,15 @@ def generate_pages_recursive(dir_path_content, destination, template_path):
 				name = entry.name
 				new_name = 'html'.join(name.rsplit('md', 1))
 				print(f"Found {name}")
-				generate_page(	template_path,
+				generate_page(	basepath,
+				                template_path,
 								os.path.join(dir_path_content,name),
 								os.path.join(destination,new_name))
 			continue
 		if entry.is_dir():
 			print(f"Generating pages recursively for {entry.name}")
-			generate_pages_recursive(	os.path.join(dir_path_content,entry.name),
+			generate_pages_recursive(	basepath,
+			                            os.path.join(dir_path_content,entry.name),
 										os.path.join(destination,entry.name),
 										template_path)
 			continue
