@@ -49,10 +49,10 @@ def generate_page(basepath, template_path, markdown_path, destination):
 		markdown = file.read()
 
 	content_html = markdown_to_html_node(markdown).to_html()
-	content_html = content_html.replace('href="/', f'href="{basepath}')
-	content_html = content_html.replace('src="/', f'src="{basepath}')
 	template = template.replace("{{ Title }}", extract_title(markdown), 1)
 	template = template.replace("{{ Content }}", content_html, 1)
+	template = template.replace('href="/', f'href="{basepath}')
+	template = template.replace('src="/', f'src="{basepath}')
 
 	Path(destination.parent).mkdir(parents=True, exist_ok=True)
 	with open(destination, "w") as file:
